@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_wine
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+
+# Load dataset
+data = load_wine()
+X = data.data[:, :2]   # first 2 features
+y = data.target
+
+# Scale features
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Train SVM model
+model = SVC(kernel='linear')
+model.fit(X, y)
+
+# Plot data points with colors
+colors = ['red', 'green', 'blue']
+for i in range(3):
+    plt.scatter(X[y == i, 0], X[y == i, 1],
+                color=colors[i], label=f"Class {i}")
+
+# Plot decision boundary
+ax = plt.gca()
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+
+xx, yy = np.meshgrid(
+    np.linspace(xlim[0], xlim[1], 200),
+    np.linspace(ylim[0], ylim[1], 200)
+)
+
+xy = np.c_[xx.ravel(), yy.ravel()]
+Z = model.predict(xy).reshape(xx.shape)
+
+# Filled contour for regions
+plt.contourf(xx, yy, Z, alpha=0.2, cmap='viridis')
+
+# Boundary lines
+plt.contour(xx, yy, Z, colors='k', linewidths=0.5)
+
+# Labels
+plt.title("SVM on Wine Dataset (2 Features)")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.legend()
+
+plt.show()
