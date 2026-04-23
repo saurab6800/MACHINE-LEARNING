@@ -1,0 +1,64 @@
+ 
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+ 
+wine = load_wine()
+X = wine.data
+y = wine.target
+
+print("Dataset shape:", X.shape)
+print("Classes:", wine.target_names)
+ 
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+ 
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+ 
+model = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)
+model.fit(X_train, y_train)
+ 
+y_pred = model.predict(X_test)
+ 
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
+
+print("\nClassification Report:\n")
+print(classification_report(y_test, y_pred))
+
+print("\nConfusion Matrix:\n")
+print(confusion_matrix(y_test, y_pred))
+ 
+X_2d = X[:, :2]
+X_2d = StandardScaler().fit_transform(X_2d)
+
+model_2d = SVC(kernel='linear')
+model_2d.fit(X_2d, y)
+ 
+x_min, x_max = X_2d[:, 0].min() - 1, X_2d[:, 0].max() + 1
+y_min, y_max = X_2d[:, 1].min() - 1, X_2d[:, 1].max() + 1
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200),
+                     np.linspace(y_min, y_max, 200))
+
+Z = model_2d.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+plt.figure(figsize=(8, 6))
+plt.contourf(xx, yy, Z, alpha=0.2, cmap='viridis')
+
+colors = ['red', 'green', 'blue']
+for i in range(3):
+    plt.scatter(X_2d[y == i, 0], X_2d[y == i, 1], color=colors[i], label=f"Class {i}")
+
+plt.xlabel("Feature 1 (scaled)")
+plt.ylabel("Feature 2 (scaled)")
+plt.title("SVM on Wine Dataset (first 2 features)")
+plt.legend()
+plt.show()
